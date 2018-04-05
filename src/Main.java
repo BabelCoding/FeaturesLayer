@@ -9,7 +9,6 @@ public class Main {
 		
 	
 		final int size = 160*120;
-		//final String dirpath= "C:\\Users\\Riccardo\\Desktop\\training\\";
 		final String dirpath= "E:\\Desktop\\car\\";
 
 		RGBHolder img=new RGBHolder();
