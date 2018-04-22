@@ -1,4 +1,6 @@
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +21,7 @@ public class RGBHolder {
 	//top left coordinates
 	int tlx;
 	int tly;
-	
-	
+		
 	public RGBHolder()  {
 		
 		this.height=0;
@@ -32,7 +33,10 @@ public class RGBHolder {
 		tly=0;
 		
 	}//end constructor
-
+	
+	//=== IMPORT METHODS ===
+	
+	//import image from another RGBHolder Object
 	public void setImage(RGBHolder ih){
 		
 		this.height=ih.getHeight();
@@ -55,28 +59,35 @@ public class RGBHolder {
 		
 	}//end setImage
 	
+	//import a BufferedImage
 	public void setBufferedImage(BufferedImage image){
 		
-		height=image.getHeight();
-		width=image.getWidth();
-		
-		bluePixels= new double[height][width];
-		greenPixels= new double[height][width];
-		redPixels= new double[height][width];
-		alphaPixels	= new double[height][width];
-		
-		//get Image matrix
-		for (int h=0; h<height;h++){
-			for (int w=0; w<width;w++){
-				redPixels[h][w]=this.getPixelColour(image,w, h).getRed();
-				greenPixels[h][w]=this.getPixelColour(image,w, h).getGreen();
-				bluePixels[h][w]=this.getPixelColour(image,w, h).getBlue();
-				alphaPixels[h][w]=this.getPixelColour(image,w, h).getAlpha();			
-			}//end height			
-		}// end width
-		
+		if(image ==null) {
+			this.height=0;
+			this.width=0;
+		}else{
+			
+			height=image.getHeight();
+			width=image.getWidth();
+			
+			bluePixels= new double[height][width];
+			greenPixels= new double[height][width];
+			redPixels= new double[height][width];
+			alphaPixels	= new double[height][width];
+			
+			//get Image matrix
+			for (int h=0; h<height;h++){
+				for (int w=0; w<width;w++){
+					redPixels[h][w]=this.getPixelColour(image,w, h).getRed();
+					greenPixels[h][w]=this.getPixelColour(image,w, h).getGreen();
+					bluePixels[h][w]=this.getPixelColour(image,w, h).getBlue();
+					alphaPixels[h][w]=this.getPixelColour(image,w, h).getAlpha();			
+				}//end height			
+			}// end width
+		}//end else	
 	}//end setbufferedimage
 	
+	//import Image from file
 	public void setImageFromFile(String imgpath) throws IOException{
 		
 		File myImg = new File(imgpath);
@@ -86,7 +97,8 @@ public class RGBHolder {
 			
 	} //end getImageFrom
 	
-	public void setImgFromLinearArray(double[] array ){
+	//import image from a linear RGB array
+	public void setImgFromLinearRGB(double[] array ){
 		
 		//linear format is R1,G1,B1, R2,G2,B2, R3..... 
 		
@@ -99,9 +111,9 @@ public class RGBHolder {
 		
 		for (int h=0; h<this.getHeight();h++){
 			for (int w=0; w<this.getWidth();w++){
-				redPixels[h][w]=(int)array [count];
-				greenPixels[h][w]=(int)array[count+1];
-				bluePixels[h][w]=(int)array[count+2];
+				redPixels[h][w]=array [count];
+				greenPixels[h][w]=array[count+1];
+				bluePixels[h][w]=array[count+2];
 				alphaPixels[h][w]=255;
 				count=count+3;
 			}//end width
@@ -109,11 +121,120 @@ public class RGBHolder {
 		
 	}
 	
-	public double[] getlinearArray(){
+	
+	
+	//=== ANALYSIS ===
+	
+	//invert colours
+	public void invert( ){
+		
+		
+		//get Image matrix
+		for (int h=0; h<height;h++){
+			for (int w=0; w<width;w++){
+				redPixels[h][w]=255-redPixels[h][w];
+				greenPixels[h][w]=255-greenPixels[h][w];
+				bluePixels[h][w]=255-bluePixels[h][w];
+							
+			}//end height			
+		}// end width
+		
+		
+	}
+	
+	public void standardise(){
+		
+		//calculate z variable
+		double avgR = this.averageMatrix(redPixels);
+		double stddevR = this.stdDevMatrix(redPixels);
+		
+		double avgG = this.averageMatrix(greenPixels);
+		double stddevG = this.stdDevMatrix(greenPixels);
+		
+		double avgB = this.averageMatrix(bluePixels);
+		double stddevB = this.stdDevMatrix(bluePixels);
+		
+		
+		for(int j=0; j<height;j++){
+			for(int i=0;i<width;i++){							
+				redPixels[j][i]= (redPixels[j][i]-avgR)/stddevR;	
+				greenPixels[j][i]= (greenPixels[j][i]-avgG)/stddevG;
+				bluePixels[j][i]= (bluePixels[j][i]-avgB)/stddevB;
+			}//i
+		}//j
+		
+	}//end standardize
+		
+	public double[] getAVGvalue() {
+			
+			double[] rgbAVG = new double[3];	
+			double sumR,sumG, sumB;
+			
+			sumR=0;
+			sumG=0;
+			sumB=0;
+			
+			double n = this.height*this.width;
+			
+			for (int h=0; h<this.height;h++){
+				for (int w=0; w<this.width;w++){			
+					sumR=sumR+redPixels[h][w];
+					sumG=sumG+greenPixels[h][w];
+					sumB=sumB+bluePixels[h][w];			
+				}//end width
+			}//end height 
+			
+		
+			rgbAVG[0]=(sumR)/n;
+			rgbAVG[1]=(sumG)/n;
+			rgbAVG[2]=(sumB)/n;
+			
+			return rgbAVG;
+			
+		}
+	
+	 //resize image
+ 	public RGBHolder resize (int newHeight, int newWidth) throws IOException{
+		
+		BufferedImage img = this.getBufferedImage();	
+		Image newImage = img.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);	 
 
+	    // Create a buffered image with transparency
+	    BufferedImage bimage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+
+	    // Draw the image on to the buffered image
+	    Graphics2D bGr = bimage.createGraphics();
+	    bGr.drawImage(newImage, 0, 0, null);
+	    bGr.dispose();
+	    
+	    //return resized IMG
+	    RGBHolder resizedIMG = new RGBHolder();
+	    resizedIMG.setBufferedImage(bimage);		    
+	    
+	   return resizedIMG;
+	  
+	}
+		
+	public double information(){
+		
+		double sigmar, sigmag, sigmab;
+		sigmar=this.stdDevMatrix(redPixels);
+		sigmag=this.stdDevMatrix(greenPixels);
+		sigmab=this.stdDevMatrix(bluePixels);
+		
+		return sigmar+sigmag+sigmab;
+	
+	}//end getinfo
+ 		
+	//=== EXPORT METHODS ===
+	
+ 	//export linear RGB array R1,G1,B1, R2,G2,B2....
+	public double[] getlinearArray(){
+		
+		
 		int pixels=this.height * this.width;
 		double [] lineararray = new double [pixels*3];
-				
+		
 		int count=0;
 	
 		//linearize the matrix [ R1,G1,B1, R2,G2,B2, R3..... 
@@ -130,45 +251,26 @@ public class RGBHolder {
 
 	}//end getlinearArray
 	
-	public double[] getAVGvalue() {
+	//export BufferedImage
+	public BufferedImage getBufferedImage() throws IOException{
 		
-		double[] rgbAVG = new double[3];	
-		double sumR,sumG, sumB;
 		
-		sumR=0;
-		sumG=0;
-		sumB=0;
+		//prepare the buffered output image
+		BufferedImage imgBuf = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);;
 		
-		double n = this.height*this.width;
+		for (int h=0; h<height;h++){
+			for (int w=0; w<width;w++){
+				int rgb = (((int)alphaPixels[h][w]<<24) | ((int)redPixels[h][w]) << 16 | ((int)greenPixels[h][w]) << 8 | ((int)bluePixels[h][w]));      
+				imgBuf.setRGB(w, h, rgb);            
+           }//end h
+        }//end w
 		
-		for (int h=0; h<this.height;h++){
-			for (int w=0; w<this.width;w++){			
-				sumR=sumR+redPixels[h][w];
-				sumG=sumG+greenPixels[h][w];
-				sumB=sumB+bluePixels[h][w];			
-			}//end width
-		}//end height 
-		
-	
-		rgbAVG[0]=(sumR)/n;
-		rgbAVG[1]=(sumG)/n;
-		rgbAVG[2]=(sumB)/n;
-		
-		return rgbAVG;
-		
-	}
-	
+       return imgBuf;
 
-	private Color getPixelColour(BufferedImage image, int x, int y){
-		
-		Color colour = new Color(image.getRGB(x, y));
-		return colour;
-		
-	}//end getpixelcolour
+	}//end write image
 	
-	public void printImage(String filepath) throws IOException{
-		
-		System.out.println("Printing image file....");
+	//export to file
+	public void printOnFile(String filepath) throws IOException{
 		
 		//prepare the buffered output image
 		BufferedImage imgBuf = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);;
@@ -185,30 +287,15 @@ public class RGBHolder {
         ImageIO.write(imgBuf, "png", file);
 
 	}//end write image
-
-	public BufferedImage getBufferedImage() throws IOException{
-		
-		System.out.println("Printing image file....");
-		
-		//prepare the buffered output image
-		BufferedImage imgBuf = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);;
-		
-		for (int h=0; h<height;h++){
-			for (int w=0; w<width;w++){
-				int rgb = (((int)alphaPixels[h][w]<<24) | ((int)redPixels[h][w]) << 16 | ((int)greenPixels[h][w]) << 8 | ((int)bluePixels[h][w]));      
-				imgBuf.setRGB(w, h, rgb);            
-           }//end h
-        }//end w
-		
-       return imgBuf;
-
-	}//end write image
 	
-	// get and set
+		
+	// === OTHER get and set ===
 	public void setRedMatrix(double [][] newMatrix){
 		
 		redPixels =new double[newMatrix.length][newMatrix[0].length];
 		redPixels=this.copyMatrix(newMatrix);
+		
+		//if the new matrix is smaller overlaps the old one
 		if(newMatrix.length>height) height=newMatrix.length;
 		if(newMatrix[0].length>width) width=newMatrix[0].length;
 	}
@@ -234,11 +321,11 @@ public class RGBHolder {
 		if(matrix[0].length>width) width=matrix[0].length;
 	}
 	
-	public void setAlphaMax(){
+	public void setAlpha(int alpha){
 		alphaPixels =new double[this.height][this.width];
 		for(int h=0; h<this.height; h++){
 			for(int w=0; w<this.width;w++){
-				alphaPixels[h][w]=255;
+				alphaPixels[h][w]=alpha;
 			}//for h
 		}//for w
 		
@@ -263,7 +350,8 @@ public class RGBHolder {
 	public void setTly(int y ){ this.tly=y;}
 	
 	
-	//additional tools
+	//=== additional tools ===
+	
 	private double[][] copyMatrix(double[][] matrix){
 		
 		double[][] output=new double[matrix.length][matrix[0].length];
@@ -275,17 +363,6 @@ public class RGBHolder {
 		return output;
 	}//end copyMatrix
 		
-	public double getInfo(){
-		
-		double sigmar, sigmag, sigmab;
-		sigmar=this.stdDevMatrix(redPixels);
-		sigmag=this.stdDevMatrix(greenPixels);
-		sigmab=this.stdDevMatrix(bluePixels);
-		
-		return sigmar+sigmag+sigmab;
-	
-	}//end getinfo
-	
 	private double averageMatrix(double [][] matrix){
 		
 		double sum=0;
@@ -323,6 +400,14 @@ public class RGBHolder {
 	
 	}//end standard deviation
 		
+	private Color getPixelColour(BufferedImage image, int x, int y){
+		
+		Color colour = new Color(image.getRGB(x, y));
+		return colour;
+		
+	}//end getpixelcolour
+	
+	
 }//end class
 	
 	
