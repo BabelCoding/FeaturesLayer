@@ -4,15 +4,15 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 
-public class VisualLayer {
+public class IconoclasticLayer {
 
 	RGBHolder image;
 	public RGBHolder[][] sections; //[columns], [rows]  c and r are the coordinates in the picture
 	RGBHolder maxInfoAreas[];
-	double [][] I; //quantity of information for each section
+	double [][] I; //information quantity for each section
 	
 	
-	public VisualLayer(RGBHolder rgbh)  {
+	public IconoclasticLayer(RGBHolder rgbh)  {
 		this.image = new RGBHolder();
 		this.image.setImage(rgbh);
 			
@@ -76,7 +76,7 @@ public class VisualLayer {
 	}//end setResolution
 	
 	//returns a linear RGB Array with the average colour of each section 
-	public double[] AVGFilterLayer() {
+	public double[] getAVGValues() {
 		
 		//linear RGB array size: sections(W) * sections(H)  * 3 colors
 		int size = (int) Math.pow(sections.length, 2) *3; 
@@ -104,8 +104,8 @@ public class VisualLayer {
 		
 	}//end getinputlayer
 	
-	//get features: returns a set of RGB Holders (Top N features; format: FW X FH; filepath for printing)
-	public RGBHolder[] getTopNfeatures( int topN, int FW, int FH, String optionalPrintPath) throws IOException{
+	//get features: returns a set of RGB Holders (Top N features; format: w X h; optional filepath for printing)
+	public RGBHolder[] getNfeatures( int topN, int h, int w, String optionalPrintPath) throws IOException{
 		
 		//I matrix contains the quantity of Information for each section
 		
@@ -124,7 +124,7 @@ public class VisualLayer {
 		
 		for(int i=0; i<maxInfoAreas.length; i++) {
 			
-			resimg[i] = maxInfoAreas[i].resize(FH, FW);	
+			resimg[i] = maxInfoAreas[i].resize(h, w);	
 		    if(optionalPrintPath!=null) resimg[i].printOnFile(optionalPrintPath+"res"+i+".jpeg");
 		  
 		} //end for
@@ -138,7 +138,7 @@ public class VisualLayer {
 		//select TOP N
 		
 		double maxvalues[] = new double [3]; // [value,  r , c ]
-		double[][] selection = new double[topN][3]; // top 3 maxvalues
+		double[][] selection = new double[topN][3]; // top N selected sections
 		int[][] exclusionList; //set of coordinates
 		
 		exclusionList=null;
@@ -165,7 +165,6 @@ public class VisualLayer {
 	}//end calculate information
 				
 	//Information Optimiser
-	
 	private RGBHolder optimiseSection(RGBHolder section, int direction) {
 		
 		
@@ -180,14 +179,15 @@ public class VisualLayer {
 		
 		//speed of change
 		int delta;
-		delta =(int) Math.round(0.05*section.getHeight());
+		delta =(int) Math.round(0.05*Math.min(section.getHeight(), section.getWidth()));
 		
 		if(delta%2!=0) delta=delta-1; //if odd
 		
 		gradL=0;
 		gradS=0;
-		//calculate gradient in each direction (if already moving only one direction is necessary)
 		
+		
+		//calculate direction gradient (if direction=0 calculate both) 
 		info=section.information();
 		if(direction>=0){
 			larger=this.resizeSection(section, delta);
@@ -201,10 +201,9 @@ public class VisualLayer {
 		}
 		
 		
-		if(gradL>=gradS || direction>0){
+		if(gradL>=gradS){
 			//increase the section
 			if(gradL>0){
-				//System.out.println("increasing..");
 				return this.optimiseSection(larger, 1);
 				
 			}else{
@@ -228,33 +227,26 @@ public class VisualLayer {
 	
 	private RGBHolder resizeSection(RGBHolder section, int delta){
 		
+		
 		RGBHolder resSection = new RGBHolder();
 
-		double [][] tempR = new double[section.getHeight()+delta][section.getWidth()+delta];
-		double [][] tempG = new double[section.getHeight()+delta][section.getWidth()+delta];
-		double [][] tempB = new double[section.getHeight()+delta][section.getWidth()+delta];
-		double [][] tempA = new double[section.getHeight()+delta][section.getWidth()+delta];
-		
+
 		//calculate new coordinates
-		int offsetH = section.getTly()- (int) (delta/2);
-		int offsetW = section.getTlx()-(int) (delta/2);	
-			
-		//check for negative coordinates
-		if (offsetH<0) 	offsetH=0;
-		if (offsetW<0)	offsetW=0;
+		int offsetH = Math.max(section.getTly()- (int) (delta/2),0);
+		int offsetW = Math.max(section.getTlx()-(int) (delta/2),0);	
 		
-		//check if resized picture goes out of margins 
-		double cornerB, cornerC;
-		cornerB=offsetW+section.getWidth()+delta;
-		cornerC=offsetH+section.getHeight()+delta;
-		
-		//roll back if necessary (expand in one direction only)
-		if (image.getWidth()-cornerB<0) 	offsetW=offsetW-(int)(delta/2); 
-		if (image.getHeight()-cornerC<0)	offsetH=offsetH-(int)(delta/2);
+		int maxh = Math.min(section.getHeight()+delta, image.height-offsetH-1);
+		int maxw = Math.min(section.getHeight()+delta, image.width-offsetW-1);
 		
 		
-		for (int h=0; h<section.getHeight()+delta; h++){
-			for (int w=0; w<section.getWidth()+delta; w++){
+		double [][] tempR = new double[maxh][maxw];
+		double [][] tempG = new double[maxh][maxw];
+		double [][] tempB = new double[maxh][maxw];
+		double [][] tempA = new double[maxh][maxw];
+		
+				
+		for (int h=0; h<maxh; h++){
+			for (int w=0; w<maxw; w++){
 								
 				tempR[h][w]= image.getRedMatrix()[offsetH+h][offsetW+w];
 				tempG[h][w]= image.getGreenMatrix()[offsetH+h][offsetW+w];
@@ -282,7 +274,6 @@ public class VisualLayer {
 	}
 
 	//normalization
-	
 	public void localNormalisation() {
 		
 		//standardized values in each section
@@ -353,8 +344,7 @@ public class VisualLayer {
 		return min;
 	}//find max end
 	
-	//debugging: used to display the standardized image (resizes to 0-255 and stitches sections together)
-
+	//debugging: used to display the standardised image (resize to 0-255 then stitch sections together)
 	public RGBHolder visualizer() {
 		
 		int n =this.sections.length; // matrices per side (it's a square)
