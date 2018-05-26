@@ -18,23 +18,23 @@ public class Main {
 			
 			//example 0: extract top10 features with format 50x50
 			IconoclasticLayer ic0=new IconoclasticLayer(img);
-			ic0.setResolution(10); //this divides the img in 10^2 sections
+			ic0.setResolution(5); //this divides the img in 5^2 sections
 			System.out.println("Extracting 10 features... ");	
 			ic0.getNfeatures(10, 50, 50,dirpath+"features\\");
 			
 			
-			// example 1: standardise each section then extract features
+			// example 1: standardise each section first and then extract features
 			IconoclasticLayer ic1=new IconoclasticLayer(img);
-			ic1.setResolution(10);
+			ic1.setResolution(5);
 			System.out.println("Calculating standard values... ");	
 			ic1.localNormalisation();
 			System.out.println("Extracting 15 features... ");	
 			ic1.getNfeatures(15, 50, 50,dirpath+"STDfeatures\\");
 			
 			
-			// example 2: get AVG values in a linear RGB array
+			// example 2: get AVG values as a unidimentional RGB array
 			IconoclasticLayer ic2=new IconoclasticLayer(img);		
-			ic2.setResolution(10);
+			ic2.setResolution(5);
 			double [] rgbarray = ic2.getAVGValues();
 			
 			// example 3: invert colours and print img
