@@ -1,8 +1,8 @@
 This library offers a set of image transformation tools to enhance neural network training.
 
-Two kind of objects can be created: RGB Holders, Iconoclastic Layers
+Two kind of objects can be created: **RGB Holders**, **Iconoclastic Layers**
 
-== RGBHolder ==
+**== RGBHolder ==**
 
 An image can be assigned to the RGBHolder directly from a file or a BufferedImage, then you can take advantage of a set of functions: 
 
@@ -13,7 +13,7 @@ standardise (Z values)
 printOnFile
 
 
-== Iconoclastic Layer ==
+**== Iconoclastic Layer ==**
 
 Allows to break the image in N^2 sub-sections and perform different operations in each section.
 
@@ -21,7 +21,7 @@ Allows to break the image in N^2 sub-sections and perform different operations i
 -  Get top N sections with the greatest colour contrast (features)
 -  get average RGB value in each section
 
-GET FEATURES
+**GET FEATURES**
 
 getNfeatures( N, height, width, filepath)
 
