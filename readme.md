@@ -30,4 +30,4 @@ The getNfeatures() function selects the top N areas with highest colour contrast
 Filepath is optional, you can print all features in a subfolder for debugging purposes. If printing on files is not required, set the path to null.
 
 
-![2](https://user-images.githubusercontent.com/21087227/32345507-5289e5e2-c002-11e7-9bc5-51ba7a5754fc.PNG)
+![1](https://user-images.githubusercontent.com/21087227/40578829-283e0f72-6113-11e8-8e22-3bbf2a64caaf.JPG)
