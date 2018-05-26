@@ -18,7 +18,7 @@ public class Main {
 			
 			//example 0: extract top10 features with format 50x50
 			IconoclasticLayer ic0=new IconoclasticLayer(img);
-			ic0.setResolution(10);
+			ic0.setResolution(10); //this divides the img in 10^2 sections
 			System.out.println("Extracting 10 features... ");	
 			ic0.getNfeatures(10, 50, 50,dirpath+"features\\");
 			
