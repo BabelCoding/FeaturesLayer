@@ -7,7 +7,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 		
-		final String dirpath= "C:\\Users\\Riccardo\\Desktop\\car\\";
+		final String dirpath= "C:\\Desktop\\car\\";
 
 		RGBHolder img=new RGBHolder();
 		
