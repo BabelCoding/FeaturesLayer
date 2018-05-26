@@ -7,10 +7,15 @@ Two kind of objects can be created: **RGB Holders**, **Iconoclastic Layers**
 An image can be assigned to the RGBHolder directly from a file or a BufferedImage, then you can take advantage of a set of functions: 
 
 resize
+
 invert colours
+
 get&set R,G,B matrices independently
+
 standardise (Z values)
+
 printOnFile
+
 
 
 **== Iconoclastic Layer ==**
